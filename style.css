@@ -1,0 +1,145 @@
+/*Variables*/
+
+:root{
+    --primary-color: #000000;
+    --primary-bg-color: #000000;
+    --text-color: #000000;
+    --div-gradient: linear-gradient(red, #ff000086);
+}
+
+/*================================================*/
+/*Reset and General Styles*/
+* {
+    margin:0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    font-family: helvetica, sans-serif;
+    min-height: 100vh;
+    line-height: 1.5;
+}
+
+a {
+    text-decoration: none;
+}
+
+ul {
+    list-style-type: none;
+}
+
+header, footer{
+    background-color: var(--primary-color);
+    color: white;
+}
+/*================================================*/
+/*Utility Classes*/
+.font-sm {
+    font-size: 0.8rem;
+}
+
+.right-indent{
+    padding-left: 1em;
+}
+
+.center-text {
+    text-align: center;
+}
+/*================================================*/
+/*Overall layouts*/
+
+header{
+    grid-area: header;
+    position: relative;
+    top: 0;
+}
+
+main{
+    border-top: 10px double white;
+    border-bottom: 10px double white;
+    background-color: var(--primary-bg-color);
+    grid-area: main;
+    color: white;
+}
+
+footer{
+    grid-area:footer;
+    position: relative;
+    bottom: 0;
+}
+
+body{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 6rem 1fr 6rem;
+    grid-template-areas: "header header header"
+                        "main main main"
+                        "footer footer footer"
+    ;
+}
+
+/**********************************************/
+/*Header Style*/
+
+header{
+    display: flex;
+    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
+}
+
+img{
+    width: 100px;
+    height: 80px;
+    background: transparent;
+}
+
+/***********************************************/
+/*Footer Styles*/
+
+footer{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.container > *, .container2 > *{
+    border: 2px solid white;
+    width: 150px;
+    text-align: center;
+}
+
+footer .container{
+    display: flex;
+    justify-content: center;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+footer .container2{
+    display: flex;
+    justify-content: center;
+    justify-content: space-evenly;
+    align-items: center;
+}
+
+/*****************************************/
+/*Main Style*/
+
+/* Days (1-31) */
+.numbers {
+    padding: 10px 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.numbers li {
+    list-style-type: none;
+    width: 50px;
+    text-align: center;
+    margin-bottom: 5px;
+    font-size: 150%;
+}
