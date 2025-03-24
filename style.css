@@ -51,7 +51,7 @@ header, footer{
 
 header{
     grid-area: header;
-    position: relative;
+    position: top;
     top: 0;
 }
 
@@ -65,7 +65,7 @@ main{
 
 footer{
     grid-area:footer;
-    position: relative;
+    position: bottom;
     bottom: 0;
 }
 
@@ -127,19 +127,46 @@ footer .container2{
 /*****************************************/
 /*Main Style*/
 
-/* Days (1-31) */
-.numbers {
-    padding: 10px 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+main {
+    display: grid;
+    gap: 5px; 
+    padding: 10px;
+    justify-content: center;
+    align-content: center;
+    overflow: hidden;
 }
 
-.numbers li {
-    list-style-type: none;
-    width: 50px;
-    text-align: center;
-    margin-bottom: 5px;
-    font-size: 150%;
+@keyframes grow {
+    from{font-size: 20px;}
+    to{font-size: 40px;}
 }
+
+@keyframes shrink{
+    from{font-size: 40px;}
+    to{font-size: 20px;}
+}
+
+.number {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 20px;    
+    padding: 8px;
+}
+
+.select:hover{
+    cursor: pointer;
+    transition: 1s;
+    animation: grow 5s ease;
+    animation-fill-mode: both;
+}
+
+.select{
+    border: 4px solid white;
+    transition: 1s;
+    animation: shrink 5s ease;
+    animation-fill-mode: both;
+}
+
+
