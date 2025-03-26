@@ -1,9 +1,9 @@
 const nums = [];
 
-const temp = [];
 var totalNums = 0;
 var row = 0; 
 var col = 0;
+
 
 function addNums() {
     const main = document.querySelector('main');
@@ -34,6 +34,7 @@ function addNums() {
 
 function emoNums(){
     var index = Math.floor(Math.random() * totalNums);
+    randomNum = index;
     nums[index].classList.add('select');
     
     var col2 = col * 2
@@ -44,7 +45,11 @@ function emoNums(){
         nums[index + col + i].classList.add('select');
         nums[index + col2 + i].classList.add('select');
     }
+    increaseSize();
 }
+
+const temp = [];
+let fontSize = 20;
 
 function increaseSize(){
     nums.forEach(element => {
@@ -52,15 +57,24 @@ function increaseSize(){
             temp.push(element);
         }
     });
+    
     temp.forEach(element =>{
         element.addEventListener('mouseenter', () =>{
-            
+            element.style.fontSize = "40px";   
+            setTimeout(() => {
+                element.style.fontSize = "20px"; 
+            }, 5000);
+            console.log('in')
         })
+
+        element.addEventListener('mouseout', () => {
+            element.style.fontSize = "20px";   
+            console.log('out')
+        });
     })
 }
 
 console.log(temp);
-
 console.log(nums);
 
 addNums();

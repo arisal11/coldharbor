@@ -151,22 +151,24 @@ main {
     justify-content: center;
     align-items: center;
     color: white;
-    font-size: 20px;    
+    font-size: 20px;  
+    transition: font-size 2s ease;  
+    animation-fill-mode: both;
     padding: 8px;
 }
 
-.select:hover{
+/* .select:hover{
     cursor: pointer;
     transition: 1s;
     animation: grow 5s ease;
     animation-fill-mode: both;
-}
+} */
 
 .select{
     border: 4px solid white;
-    transition: 1s;
+    /* transition: 1s;
     animation: shrink 5s ease;
-    animation-fill-mode: both;
+    animation-fill-mode: both; */
 }
 
 
