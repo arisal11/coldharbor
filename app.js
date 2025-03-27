@@ -106,7 +106,6 @@ function increaseSize(){
             }, 5000);
             console.log('in')
         })
-
         element.addEventListener('mouseout', () => {
             element.style.fontSize = "20px";   
             console.log('out')
@@ -118,6 +117,7 @@ function shakeNum(){
 
 }
 
+nah
 console.log(temp);
 console.log(nums);
 
