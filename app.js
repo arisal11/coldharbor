@@ -117,7 +117,6 @@ function shakeNum(){
 
 }
 
-nah
 console.log(temp);
 console.log(nums);
 
