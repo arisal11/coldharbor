@@ -114,7 +114,7 @@ function increaseSize(){
 }
 
 function shakeNum(){
-
+    console.log('nah')
 }
 
 console.log(temp);
