@@ -98,7 +98,7 @@ function increaseSize(){
             temp.push(element);
         }
     });
-    
+    nfowfiowe
     temp.forEach(element =>{
         element.addEventListener('mouseenter', () =>{
             element.style.fontSize = "40px";   
@@ -116,7 +116,7 @@ function increaseSize(){
 }
 
 function shakeNum(){
-    
+
 }
 
 console.log(temp);
