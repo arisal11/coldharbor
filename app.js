@@ -34,22 +34,63 @@ function addNums() {
 
 function emoNums(){
     var index = Math.floor(Math.random() * totalNums);
-    randomNum = index;
     nums[index].classList.add('select');
-    
     var col2 = col * 2
     for(let i = 1; i < 3; i++){
-        nums[index + col].classList.add('select');
-        nums[index + col2].classList.add('select');
-        nums[index + i].classList.add('select')
-        nums[index + col + i].classList.add('select');
-        nums[index + col2 + i].classList.add('select');
+        if(((index + col) > totalNums) || ((index + col2) >= totalNums)){
+            nums[index - col].classList.add('select');
+            nums[index - col2].classList.add('select');
+            nums[index - i].classList.add('select')
+            nums[index - col - i].classList.add('select');
+            nums[index - col2 - i].classList.add('select');
+        }else{
+            console.log(index+ col2)
+            nums[index + col].classList.add('select');
+            nums[index + col2].classList.add('select');
+            nums[index + i].classList.add('select')
+            nums[index + col + i].classList.add('select');
+            nums[index + col2 + i].classList.add('select');
+        }
     }
-    increaseSize();
+
+    let numType = Math.floor(Math.random() * (4 - 1 + 1) + 1)
+    switch (numType) {
+        case 1:
+            increaseSize();
+            break;
+        case 2:
+            shrinkSize();
+            break;
+        default:
+            break;
+    }
+    
 }
 
 const temp = [];
-let fontSize = 20;
+
+function shrinkSize(){
+    nums.forEach(element => {
+        if(element.classList.contains('select')){
+            temp.push(element);
+        }
+    });
+    
+    temp.forEach(element =>{
+        element.addEventListener('mouseenter', () =>{
+            element.style.fontSize = "10px";   
+            setTimeout(() => {
+                element.style.fontSize = "20px"; 
+            }, 5000);
+            console.log('in')
+        })
+
+        element.addEventListener('mouseout', () => {
+            element.style.fontSize = "20px";   
+            console.log('out')
+        });
+    })
+}
 
 function increaseSize(){
     nums.forEach(element => {
@@ -72,6 +113,10 @@ function increaseSize(){
             console.log('out')
         });
     })
+}
+
+function shakeNum(){
+    
 }
 
 console.log(temp);
