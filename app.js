@@ -32,8 +32,8 @@ function addNums() {
     main.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
 }
 
-function emoNums(){
-    var index = 142 //Math.floor(Math.random() * totalNums);
+function initNums(){
+    var index = Math.floor(Math.random() * totalNums);
     nums[index].classList.add('select');
     var col2 = col * 2
     for(let i = 1; i < 3; i++){
@@ -74,10 +74,31 @@ function emoNums(){
         default:
             break;
     }
-    
+
+    selectItem();
 }
 
 const temp = [];
+
+const img = document.querySelector('img')
+img.addEventListener('click', () =>{
+    nums.forEach(element =>{
+        if(element.classList.contains('select')){
+            element.style.fontSize = "40px"
+        }
+    })
+    
+})
+
+function selectItem(){
+    nums.forEach(element => {
+        if(element.classList.contains('select')){
+            element.addEventListener('click', () =>{
+                element.style.border = "4px solid white"
+            })
+        }
+    });
+}
 
 function shrinkSize(){
     nums.forEach(element => {
@@ -89,14 +110,12 @@ function shrinkSize(){
     temp.forEach(element =>{
         element.addEventListener('mouseenter', () =>{
             element.style.fontSize = "10px";   
-            setTimeout(() => {
-                element.style.fontSize = "20px"; 
-            }, 5000);
         })
 
         element.addEventListener('mouseout', () => {
             element.style.fontSize = "20px";   
         });
+
     })
 }
 
@@ -163,12 +182,12 @@ function swayNum() {
         element.addEventListener('mouseenter', () => {
             let swaying = true;
             let angle = 0;
-            let direction = 1;
+            let direction = 2;
 
             function sway() {
                 if (!swaying) return;
-                angle += 0.2 * direction;
-                if (angle > 2 || angle < -2) direction *= -1;
+                angle += 2 * direction;
+                if (angle > 4 || angle < -4) direction *= -1;
                 element.style.transform = `rotate(${angle}deg)`;
                 requestAnimationFrame(sway);
             }
@@ -190,6 +209,7 @@ function swayNum() {
 console.log(temp);
 console.log(nums);
 
-addNums();
 
-emoNums();
+addNums();
+initNums()
+
