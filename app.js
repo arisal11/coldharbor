@@ -3,7 +3,7 @@ const nums = [];
 var totalNums = 0;
 var row = 0; 
 var col = 0;
-let score = 0;
+var score = 0;
 
 let isSelecting = false;
 let startX, startY;
@@ -61,24 +61,47 @@ container.addEventListener('mouseup', () => {
         selectedNumbers.forEach((number) => {
             number.style.backgroundColor = 'black';
         });
-        console.log(selectedNumbers);
     }
 });
 
+const boxes = ['box1', 'box2', 'box3', 'box4'];
+var i = 0;
+var myBar = Array.from(document.querySelectorAll('#myBar'));
+var barIndex = 0;
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         const selectedElements = Array.from(document.querySelectorAll('.selected'));
-        const correct = selectedElements.every(el => temp.includes(el));
-
+        const correct = selectedElements.every(el => temp.includes(el)) && selectedElements.length === temp.length;
         if (correct) {
-            const box = document.querySelector('.container .box1'); 
+            const box = document.querySelector('.container .' + boxes[barIndex]); 
+            score += 100;
             animateIntoBox(selectedElements, box);
             setTimeout(() => {
+                if (i == 0) {
+                    i = 1;
+                    var elem = myBar[barIndex];
+                    var id = setInterval(frame, 10);
+                    function frame() {
+                        if (score > 100) {
+                            clearInterval(id);
+                            score = 0;
+                            i = 0;
+                            barIndex++;
+                        } else {
+                            elem.style.width = score + "%";
+                            elem.innerHTML = score + "%";
+                        }
+                    }
+                }
                 resetGame(); 
                 addNums();
                 initNums();
             }, 100);
         }
+
+        selectedElements.forEach((el) => {
+            el.classList.remove('selected');
+        });
     }
 });
 
@@ -181,7 +204,7 @@ function initNums(){
     }
 
     let numType = Math.floor(Math.random() * (4 - 1 + 1) + 1)
-    console.log(numType)
+    console.log("number type: " + numType);
     switch (numType) {
         case 1:
             increaseSize();
@@ -330,8 +353,8 @@ function swayNum() {
     });
 }
 
-console.log(temp);
-console.log(nums);
+console.log( temp);
+console.log( nums);
 
 
 addNums();

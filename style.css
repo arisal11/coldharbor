@@ -124,6 +124,19 @@ footer .container2{
     align-items: center;
 }
 
+#myProgress {
+    background-color: rgb(0, 0, 0);
+}
+
+#myBar{
+    width: 0%;
+    height: fit-content;
+    background-color: blue;
+    text-align: center; 
+    line-height: normal;
+    font-size: small;
+    color: white;
+}
 /*****************************************/
 /*Main Style*/
 
