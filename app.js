@@ -67,25 +67,67 @@ container.addEventListener('mouseup', () => {
 
 document.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-        const selected = Array.from(document.querySelectorAll('.selected'));
-
-        const correct = selected.length === temp.length && selected.every(element => temp.includes(element));
+        const selectedElements = Array.from(document.querySelectorAll('.selected'));
+        const correct = selectedElements.every(el => temp.includes(el));
 
         if (correct) {
-            score += 1;
-            console.log(score);
-            console.log(temp);
-            temp.length = 0;
-            nums.length = 0;
-            addNums();
-            initNums();
+            const box = document.querySelector('.container .box1'); 
+            animateIntoBox(selectedElements, box);
+            setTimeout(() => {
+                resetGame(); 
+                addNums();
+                initNums();
+            }, 100);
         }
-
-        selected.forEach((number) => {
-            number.cl
-        });
     }
 });
+
+function animateIntoBox(selectedElements, targetBox) {
+    targetBox.classList.add('open');
+
+    selectedElements.forEach((el, index) => {
+        const clone = el.cloneNode(true);
+        document.body.appendChild(clone);
+
+        const startRect = el.getBoundingClientRect();
+        const endRect = targetBox.getBoundingClientRect();
+
+        clone.style.position = 'absolute';
+        clone.style.left = `${startRect.left}px`;
+        clone.style.top = `${startRect.top}px`;
+        clone.style.width = `${startRect.width}px`;
+        clone.style.height = `${startRect.height}px`;
+        clone.style.transition = 'all 1s ease';
+        clone.style.zIndex = 1000;
+
+        requestAnimationFrame(() => {
+            clone.style.left = `${endRect.left + 20 + index * 10}px`;
+            clone.style.top = `${endRect.top + 30}px`;
+            clone.style.opacity = 0;
+            clone.style.transform = 'scale(0.5)';
+        });
+
+        setTimeout(() => {
+            clone.remove();
+            if (index === selectedElements.length - 1) {
+                targetBox.classList.remove('open');
+            }
+        }, 1000);
+    });
+}
+
+function resetGame() {
+    const main = document.getElementById('main');
+    main.innerHTML = '';
+
+    nums.length = 0;
+    temp.length = 0;
+
+    totalNums = 0;
+    row = 0;
+    col = 0;
+}
+
 
 function addNums() {
     const main = document.querySelector('main');
