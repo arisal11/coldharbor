@@ -146,4 +146,17 @@ main {
     transition: font-size 2s ease; 
     animation-fill-mode: both;
     padding: 8px;
+    user-select: none;
+}
+
+.selecting-box{
+    position: absolute;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0);
+    pointer-events: none;
+}
+
+.number.selected{
+    color: white;
+    border: 2px solid white;
 }

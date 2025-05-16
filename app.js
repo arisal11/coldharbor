@@ -3,7 +3,89 @@ const nums = [];
 var totalNums = 0;
 var row = 0; 
 var col = 0;
+let score = 0;
 
+let isSelecting = false;
+let startX, startY;
+let selectingBox;
+const container = document.getElementById('main');
+
+function getNums(){
+    return document.querySelectorAll('.number');
+}
+
+container.addEventListener('mousedown', (event) =>{
+    isSelecting = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    selectingBox = document.createElement('div');
+    selectingBox.classList.add('selecting-box');
+    selectingBox.style.left = startX + 'px';
+    selectingBox.style.top = startY + 'px';
+    container.appendChild(selectingBox);
+});
+
+container.addEventListener('mousemove', (event) => {
+    if(!isSelecting) return;
+    const dx = event.clientX - startX;
+    const dy = event.clientY - startY;
+    selectingBox.style.width = Math.abs(dx) + 'px';
+    selectingBox.style.height = Math.abs(dy) + 'px';
+    selectingBox.style.left = Math.min(startX, event.clientX) + 'px';
+    selectingBox.style.top = Math.min(startY, event.clientY) + 'px';
+
+    const boxRect = selectingBox.getBoundingClientRect();
+    const numbers = getNums();
+    numbers.forEach((number) => {
+        const itemRect = number.getBoundingClientRect();
+        const intersecting = !(
+            boxRect.top > itemRect.bottom ||
+            boxRect.bottom < itemRect.top ||
+            boxRect.right < itemRect.left ||
+            boxRect.left > itemRect.right
+        )
+
+        if (intersecting) {
+            number.classList.add('selected');
+        } else {
+            number.classList.remove('selected');
+        }
+    });
+});
+
+container.addEventListener('mouseup', () => {
+    if(isSelecting){
+        isSelecting = false;
+        selectingBox.remove();
+        const selectedNumbers = Array.from(document.querySelectorAll('.selected'));
+        selectedNumbers.forEach((number) => {
+            number.style.backgroundColor = 'black';
+        });
+        console.log(selectedNumbers);
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        const selected = Array.from(document.querySelectorAll('.selected'));
+
+        const correct = selected.length === temp.length && selected.every(element => temp.includes(element));
+
+        if (correct) {
+            score += 1;
+            console.log(score);
+            console.log(temp);
+            temp.length = 0;
+            nums.length = 0;
+            addNums();
+            initNums();
+        }
+
+        selected.forEach((number) => {
+            number.cl
+        });
+    }
+});
 
 function addNums() {
     const main = document.querySelector('main');
