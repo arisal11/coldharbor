@@ -1,0 +1,14 @@
+{
+  "name": "coldharbor",
+  "version": "1.0.0",
+  "description": "Cold Harbor — a multiplayer Severance macrodata refinement game",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}

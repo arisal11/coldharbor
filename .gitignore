@@ -1,0 +1,5 @@
+coldharbor.db
+node_modules/
+coldharbor.db-journal
+coldharbor.db-wal
+coldharbor.db-shm

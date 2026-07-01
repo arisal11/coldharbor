@@ -23,8 +23,6 @@ let pulseTimer = null;
 const PULSE_INTERVAL = 15000; // every 15s the cluster acts up on its own
 const PULSE_DURATION = 3000;  // how long the auto-pulse lasts
 
-const binProgress = [0, 0, 0, 0, 0];
-
 // Four tempers, each with a pool of wacky behaviors that fit its mood.
 // A random one is picked per file so the numbers do different things.
 const TEMPERS = [
@@ -38,7 +36,7 @@ const container = document.getElementById('main');
 
 // ---------- build the (larger-than-screen) grid ----------
 function addNums() {
-    container.innerHTML = '';
+    if (grid) grid.remove();   // keep the feed overlay; only replace the grid
     nums.length = 0;
 
     viewCols = Math.max(1, Math.floor(container.clientWidth / CELL));
@@ -369,7 +367,7 @@ document.addEventListener('mouseup', (event) => {
 // Enter refines into the first unfinished bin
 document.addEventListener('keydown', (event) => {
     if (event.key !== 'Enter') return;
-    let binIndex = binProgress.findIndex((p) => p < 100);
+    let binIndex = binPct.findIndex((p) => p < 100);
     if (binIndex === -1) binIndex = 0;
     dropIntoBin(binIndex);
 });
@@ -386,7 +384,13 @@ function dropIntoBin(binIndex) {
     if (correct) {
         const box = document.querySelectorAll('.bin')[binIndex].querySelector('.box');
         animateIntoBox(selected, box);
-        fillBin(binIndex);
+        if (wsReady) {
+            // authoritative: server records it in the DB and broadcasts to everyone
+            sendRefine(binIndex, selected.length);
+        } else {
+            // offline fallback so single-player still works
+            applyLocalRefine(binIndex, selected.length);
+        }
         setTimeout(() => {
             addNums();
             initNums();
@@ -395,21 +399,6 @@ function dropIntoBin(binIndex) {
         container.classList.add('reject');
         setTimeout(() => container.classList.remove('reject'), 300);
         selected.forEach((el) => el.classList.remove('selected'));
-    }
-}
-
-function fillBin(index) {
-    const gain = 8 + Math.floor(Math.random() * 12); // 8-19% per refine
-    binProgress[index] = Math.min(100, binProgress[index] + gain);
-
-    const bin = document.querySelectorAll('.bin')[index];
-    const fill = bin.querySelector('.fill');
-    const pct = bin.querySelector('.pct');
-    fill.style.width = binProgress[index] + '%';
-    pct.textContent = binProgress[index] + '%';
-    if (binProgress[index] >= 100) {
-        fill.classList.add('complete');
-        bin.querySelector('.box').classList.add('full');
     }
 }
 
@@ -458,6 +447,150 @@ function animateIntoBox(selectedElements, box) {
     setTimeout(() => box.classList.remove('open'), lastDone + 150);
 }
 
+// ================= multiplayer (shared global goal) =================
+let GOAL = 500000;
+let BIN_TARGET = 100000;
+let myHandle = null;
+let ws = null;
+let wsReady = false;
+
+const binPct = [0, 0, 0, 0, 0];         // current bin fill %, authoritative from server
+const localRefined = [0, 0, 0, 0, 0];   // offline fallback counts
+const BIN_LABELS = ['01', '02', '03', '04', '05'];
+
+function connect() {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${proto}//${location.host}`);
+
+    ws.addEventListener('open', () => { wsReady = true; });
+
+    ws.addEventListener('message', (ev) => {
+        let msg;
+        try { msg = JSON.parse(ev.data); } catch { return; }
+
+        if (msg.type === 'state') {
+            GOAL = msg.goal;
+            BIN_TARGET = msg.binTarget;
+            myHandle = msg.you;
+            renderBins(msg.bins);
+            renderGlobal(msg.total);
+            setOnline(msg.online);
+            if (Array.isArray(msg.feed)) msg.feed.forEach((e) => addFeed(e, false));
+        } else if (msg.type === 'refined') {
+            renderBins(msg.bins);
+            renderGlobal(msg.total);
+            setOnline(msg.online);
+            const mine = msg.by === myHandle;
+            addFeed(msg, mine);
+            if (!mine) remoteRefine(msg.bin, msg.count); // watch others help in real time
+        } else if (msg.type === 'online') {
+            setOnline(msg.online);
+        }
+    });
+
+    ws.addEventListener('close', () => {
+        wsReady = false;
+        setOnline(null);
+        setTimeout(connect, 2000); // auto-reconnect
+    });
+    ws.addEventListener('error', () => { try { ws.close(); } catch (e) {} });
+}
+
+function sendRefine(bin, count) {
+    if (wsReady && ws) ws.send(JSON.stringify({ type: 'refine', bin, count }));
+}
+
+// offline single-player fallback
+function applyLocalRefine(bin, count) {
+    localRefined[bin] = Math.min(BIN_TARGET, localRefined[bin] + count);
+    const bins = localRefined.map((r, idx) => ({
+        idx, refined: r, pct: Math.min(100, (r / BIN_TARGET) * 100),
+    }));
+    renderBins(bins);
+    renderGlobal(localRefined.reduce((s, x) => s + x, 0));
+    addFeed({ bin, count }, true);
+}
+
+function renderBins(bins) {
+    const binEls = document.querySelectorAll('.bin');
+    bins.forEach((b) => {
+        binPct[b.idx] = b.pct;
+        const binEl = binEls[b.idx];
+        if (!binEl) return;
+        const fill = binEl.querySelector('.fill');
+        const pctEl = binEl.querySelector('.pct');
+        fill.style.width = b.pct + '%';
+        pctEl.textContent = formatPct(b.pct);
+        const full = b.pct >= 100;
+        fill.classList.toggle('complete', full);
+        binEl.querySelector('.box').classList.toggle('full', full);
+        binEl.title = `${b.refined.toLocaleString()} / ${BIN_TARGET.toLocaleString()} macrodata`;
+    });
+}
+
+function renderGlobal(total) {
+    const pct = (total / GOAL) * 100;
+    const fill = document.getElementById('globalFill');
+    const text = document.getElementById('globalText');
+    const pctEl = document.getElementById('globalPct');
+    if (fill) fill.style.width = Math.min(100, pct) + '%';
+    if (text) text.textContent = `${total.toLocaleString()} / ${GOAL.toLocaleString()}`;
+    if (pctEl) pctEl.textContent = pct.toFixed(3) + '%';
+}
+
+function setOnline(n) {
+    const el = document.getElementById('online');
+    if (!el) return;
+    if (n == null) {
+        el.innerHTML = '<span class="dot off"></span>offline';
+    } else {
+        el.innerHTML = `<span class="dot"></span>${n} refiner${n === 1 ? '' : 's'} online`;
+    }
+}
+
+function formatPct(p) {
+    if (p >= 100) return '100%';
+    if (p >= 10) return p.toFixed(0) + '%';
+    if (p >= 1) return p.toFixed(1) + '%';
+    return p.toFixed(2) + '%';
+}
+
+function addFeed(e, mine) {
+    const feed = document.getElementById('feed');
+    if (!feed) return;
+    const row = document.createElement('div');
+    row.className = 'feed-item' + (mine ? ' mine' : '');
+    const who = mine ? 'You' : e.by;
+    row.textContent = `${who}  →  bin ${BIN_LABELS[e.bin]}  +${e.count}`;
+    feed.prepend(row);
+    while (feed.children.length > 7) feed.lastChild.remove();
+    setTimeout(() => row.classList.add('out'), 6000);
+    setTimeout(() => row.remove(), 6800);
+}
+
+// show another player's contribution landing in the shared box
+function remoteRefine(bin, count) {
+    const binEl = document.querySelectorAll('.bin')[bin];
+    if (!binEl) return;
+    const box = binEl.querySelector('.box');
+    box.classList.add('open');
+    setTimeout(() => box.classList.remove('open'), 700);
+
+    const rect = box.getBoundingClientRect();
+    const tag = document.createElement('div');
+    tag.className = 'plus-tag';
+    tag.textContent = '+' + count;
+    tag.style.left = (rect.left + rect.width / 2) + 'px';
+    tag.style.top = (rect.top - 6) + 'px';
+    document.body.appendChild(tag);
+    requestAnimationFrame(() => {
+        tag.style.top = (rect.top - 36) + 'px';
+        tag.style.opacity = '0';
+    });
+    setTimeout(() => tag.remove(), 900);
+}
+
 // ---------- start ----------
 addNums();
 initNums();
+connect();
