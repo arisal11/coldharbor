@@ -17,6 +17,10 @@ let clusterCol = 0, clusterRow = 0; // top-left tile of the cluster
 let currentTemper = null;
 let revealed = false;
 
+let pulseTimer = null;
+const PULSE_INTERVAL = 30000; // every 30s the cluster acts up on its own
+const PULSE_DURATION = 3000;  // how long the auto-pulse lasts
+
 const binProgress = [0, 0, 0, 0, 0];
 
 // Four tempers, each mapped to the reaction it produces
@@ -86,7 +90,20 @@ function initNums() {
         el.addEventListener('mouseleave', () => reactStop(el));
     });
 
+    startPulseTimer();
     updateReveal();
+}
+
+// every PULSE_INTERVAL the whole cluster reacts on its own for a moment,
+// so it's easier to spot without hovering
+function startPulseTimer() {
+    if (pulseTimer) clearInterval(pulseTimer);
+    pulseTimer = setInterval(pulseCluster, PULSE_INTERVAL);
+}
+
+function pulseCluster() {
+    temp.forEach((el) => reactStart(el, currentTemper.reaction));
+    setTimeout(() => temp.forEach((el) => reactStop(el)), PULSE_DURATION);
 }
 
 // ---------- panning ----------
