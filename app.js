@@ -190,6 +190,9 @@ let selectingBox = null;
 let ghost = null;
 
 container.addEventListener('mousedown', (event) => {
+    // stop the browser from starting a native text selection over the tiles
+    event.preventDefault();
+
     const onSelected =
         event.target.classList.contains('number') &&
         event.target.classList.contains('selected');
