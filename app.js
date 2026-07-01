@@ -1,8 +1,9 @@
 // ===== Cold Harbor — Macrodata Refinement =====
 // A large grid of numbers (bigger than the screen — pan with arrow keys).
-// A hidden "scary" cluster reacts when you feel it out (grow/shrink/shake/sway),
-// mapped to one of the four tempers. Box-select the cluster and drag it into
-// one of the five bins to refine it.
+// A hidden "scary" cluster reacts when you feel it out (grow, shrink, shake,
+// jitter, sway, wobble, spin, bounce, droop, stretch, flicker), tied to one of
+// the four tempers. Box-select the cluster and drag it into one of the five
+// bins to refine it.
 
 const nums = [];   // every number tile in the grid
 const temp = [];   // the current target cluster (the "scary" numbers)
@@ -15,20 +16,22 @@ let grid = null;
 
 let clusterCol = 0, clusterRow = 0; // top-left tile of the cluster
 let currentTemper = null;
+let currentReaction = null;         // which wacky behavior this cluster does
 let revealed = false;
 
 let pulseTimer = null;
-const PULSE_INTERVAL = 30000; // every 30s the cluster acts up on its own
+const PULSE_INTERVAL = 15000; // every 15s the cluster acts up on its own
 const PULSE_DURATION = 3000;  // how long the auto-pulse lasts
 
 const binProgress = [0, 0, 0, 0, 0];
 
-// Four tempers, each mapped to the reaction it produces
+// Four tempers, each with a pool of wacky behaviors that fit its mood.
+// A random one is picked per file so the numbers do different things.
 const TEMPERS = [
-    { code: 'WO', reaction: 'shrink' },   // Woe — despair
-    { code: 'FC', reaction: 'increase' }, // Frolic — joy
-    { code: 'DR', reaction: 'shake' },    // Dread — fear
-    { code: 'MA', reaction: 'sway' },     // Malice — rage
+    { code: 'WO', reactions: ['shrink', 'droop', 'flicker'] },   // Woe — despair
+    { code: 'FC', reactions: ['increase', 'bounce', 'spin'] },   // Frolic — joy
+    { code: 'DR', reactions: ['shake', 'jitter', 'flicker'] },   // Dread — fear
+    { code: 'MA', reactions: ['sway', 'wobble', 'stretch'] },    // Malice — rage
 ];
 
 const container = document.getElementById('main');
@@ -85,8 +88,11 @@ function initNums() {
     }
 
     currentTemper = TEMPERS[Math.floor(Math.random() * TEMPERS.length)];
+    currentReaction = currentTemper.reactions[
+        Math.floor(Math.random() * currentTemper.reactions.length)
+    ];
     temp.forEach((el) => {
-        el.addEventListener('mouseenter', () => reactStart(el, currentTemper.reaction));
+        el.addEventListener('mouseenter', () => reactStart(el, currentReaction));
         el.addEventListener('mouseleave', () => reactStop(el));
     });
 
@@ -102,7 +108,7 @@ function startPulseTimer() {
 }
 
 function pulseCluster() {
-    temp.forEach((el) => reactStart(el, currentTemper.reaction));
+    temp.forEach((el) => reactStart(el, currentReaction));
     setTimeout(() => temp.forEach((el) => reactStop(el)), PULSE_DURATION);
 }
 
@@ -135,33 +141,83 @@ function reactStart(el, reaction) {
     reactStop(el);
     el._reacting = true;
 
+    // font-size reactions rely on the CSS transition, no animation loop needed
     if (reaction === 'increase') {
         el.style.fontSize = '42px';
-    } else if (reaction === 'shrink') {
-        el.style.fontSize = '9px';
-    } else if (reaction === 'shake') {
-        el.classList.add('reacting');
-        const loop = () => {
-            if (!el._reacting) return;
-            const x = (Math.random() - 0.5) * 5;
-            const y = (Math.random() - 0.5) * 5;
-            el.style.transform = `translate(${x}px, ${y}px)`;
-            el._raf = requestAnimationFrame(loop);
-        };
-        loop();
-    } else if (reaction === 'sway') {
-        el.classList.add('reacting');
-        let angle = 0;
-        let dir = 1;
-        const loop = () => {
-            if (!el._reacting) return;
-            angle += dir;
-            if (angle > 6 || angle < -6) dir *= -1;
-            el.style.transform = `rotate(${angle}deg)`;
-            el._raf = requestAnimationFrame(loop);
-        };
-        loop();
+        return;
     }
+    if (reaction === 'shrink') {
+        el.style.fontSize = '9px';
+        return;
+    }
+
+    // everything else animates transform/opacity — pause the idle float so the
+    // inline transform isn't overridden by the float animation
+    el.classList.add('reacting');
+    let t = 0;
+    let angle = 0;
+    let dir = 1;
+
+    const loop = () => {
+        if (!el._reacting) return;
+        t += 1;
+
+        switch (reaction) {
+            case 'shake': {
+                const x = (Math.random() - 0.5) * 5;
+                const y = (Math.random() - 0.5) * 5;
+                el.style.transform = `translate(${x}px, ${y}px)`;
+                break;
+            }
+            case 'jitter': { // frantic — shakes hard and twitches
+                const x = (Math.random() - 0.5) * 11;
+                const y = (Math.random() - 0.5) * 11;
+                const r = (Math.random() - 0.5) * 12;
+                el.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
+                break;
+            }
+            case 'sway': {
+                angle += dir;
+                if (angle > 6 || angle < -6) dir *= -1;
+                el.style.transform = `rotate(${angle}deg)`;
+                break;
+            }
+            case 'wobble': { // wide angry rock, slightly enlarged
+                angle += dir * 1.5;
+                if (angle > 16 || angle < -16) dir *= -1;
+                el.style.transform = `rotate(${angle}deg) scale(1.12)`;
+                break;
+            }
+            case 'spin': { // full continuous rotation
+                angle = (angle + 7) % 360;
+                el.style.transform = `rotate(${angle}deg)`;
+                break;
+            }
+            case 'bounce': { // hops up and down
+                const y = -Math.abs(Math.sin(t * 0.15)) * 12;
+                el.style.transform = `translateY(${y}px)`;
+                break;
+            }
+            case 'droop': { // sinks down, sad
+                const y = 7 + Math.sin(t * 0.08) * 3;
+                el.style.transform = `translateY(${y}px) scale(0.9)`;
+                break;
+            }
+            case 'stretch': { // squash and stretch
+                const s = Math.sin(t * 0.2);
+                el.style.transform = `scale(${1 + s * 0.45}, ${1 - s * 0.3})`;
+                break;
+            }
+            case 'flicker': { // glitchy CRT flicker
+                el.style.opacity = Math.random() < 0.5 ? '0.2' : '1';
+                el.style.transform = `translate(${(Math.random() - 0.5) * 3}px, 0)`;
+                break;
+            }
+        }
+
+        el._raf = requestAnimationFrame(loop);
+    };
+    loop();
 }
 
 function reactStop(el) {
@@ -170,6 +226,7 @@ function reactStop(el) {
     el.classList.remove('reacting');
     el.style.transform = '';
     el.style.fontSize = '';
+    el.style.opacity = '';
 }
 
 // ---------- reveal (logo = test button) ----------
@@ -333,7 +390,7 @@ function dropIntoBin(binIndex) {
         setTimeout(() => {
             addNums();
             initNums();
-        }, 550);
+        }, 800);
     } else {
         container.classList.add('reject');
         setTimeout(() => container.classList.remove('reject'), 300);
@@ -377,14 +434,14 @@ function animateIntoBox(selectedElements, box) {
         clone.style.width = `${startRect.width}px`;
         clone.style.height = `${startRect.height}px`;
         clone.style.margin = '0';
-        clone.style.transition = 'left 0.55s cubic-bezier(0.5,0,0.75,1), top 0.55s cubic-bezier(0.5,0,0.75,1), transform 0.55s ease-in, opacity 0.55s ease-in';
+        clone.style.transition = 'left 0.85s cubic-bezier(0.45,0,0.7,1), top 0.85s cubic-bezier(0.45,0,0.7,1), transform 0.85s ease-in, opacity 0.85s ease-in';
         clone.style.zIndex = 1000;
         clone.style.pointerEvents = 'none';
         clone.style.animation = 'none';
         document.body.appendChild(clone);
 
         // stagger the tiles so they stream into the box one after another
-        const delay = index * 70;
+        const delay = index * 100;
         setTimeout(() => {
             clone.style.left = `${targetX}px`;
             clone.style.top = `${targetY}px`;
@@ -392,13 +449,13 @@ function animateIntoBox(selectedElements, box) {
             clone.style.opacity = '0';
         }, delay + 20);
 
-        const done = delay + 620;
+        const done = delay + 900;
         lastDone = Math.max(lastDone, done);
         setTimeout(() => clone.remove(), done);
     });
 
-    // close the flaps shortly after the last tile drops in
-    setTimeout(() => box.classList.remove('open'), lastDone + 120);
+    // close the flaps back down once the last tile has dropped in
+    setTimeout(() => box.classList.remove('open'), lastDone + 150);
 }
 
 // ---------- start ----------

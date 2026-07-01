@@ -228,23 +228,33 @@ footer{
     transition: filter 0.2s ease;
 }
 
-/* --- the cardboard box --- */
+/* --- the cardboard box: two flaps hinge up from the top corners into a V --- */
 .box{
     position: relative;
-    width: 98px;
-    height: 56px;
-    perspective: 600px;
+    width: 100px;
+    height: 90px;               /* headroom above the body for the open flaps */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
 }
 
+.box3d{
+    position: relative;
+    width: 100px;
+    height: 44px;               /* the box body */
+}
+
+/* body / front face (carries the number) */
 .box-front{
     position: absolute;
     inset: 0;
     border: 1.5px solid var(--line);
-    background: linear-gradient(180deg, #0e0e0e 0%, #000 100%);
+    border-top: none;                    /* the flaps form the top edge */
+    background: linear-gradient(180deg, #1e1e1e 0%, #050505 100%);
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    padding-bottom: 8px;
+    padding-bottom: 6px;
     z-index: 1;
 }
 
@@ -255,42 +265,49 @@ footer{
     color: var(--line);
 }
 
-/* dark slot revealed when the flaps open */
-.box-opening{
+/* dark opening at the top of the body, revealed when the flaps lift */
+.box-inside{
     position: absolute;
+    left: 2px;
+    right: 2px;
     top: 0;
-    left: 4px;
-    right: 4px;
-    height: 16px;
+    height: 13px;
     background: #000;
-    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 1);
     z-index: 2;
 }
 
-/* two top flaps that open outward like a cardboard box */
-.flap{
+/* the two flaps hinge at the box's top-left and top-right corners */
+.lid{
     position: absolute;
-    top: -1px;
-    height: 15px;
-    width: 50%;
-    background: linear-gradient(180deg, #161616, #050505);
-    border: 1.5px solid var(--line);
-    transition: transform 0.4s cubic-bezier(0.34, 1.3, 0.5, 1);
-    backface-visibility: hidden;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0;                  /* anchor line at the box's top edge */
     z-index: 3;
 }
+.flap{
+    position: absolute;
+    bottom: 0;                  /* sit on the box's top edge */
+    width: 50%;
+    height: 15px;
+    background: linear-gradient(180deg, #4d4d4d 0%, #262626 100%);
+    border: 1.5px solid var(--line);
+    transition: transform 0.55s ease;
+}
+/* closed: both flaps lie flat along the top, meeting in the middle */
 .flap-left{
     left: 0;
-    transform-origin: left center;
-    border-right: none;
+    transform-origin: left bottom;
 }
 .flap-right{
     right: 0;
-    transform-origin: right center;
-    border-left: none;
+    transform-origin: right bottom;
 }
-.box.open .flap-left{  transform: rotateY(-128deg); }
-.box.open .flap-right{ transform: rotateY(128deg); }
+/* open: swing up and outward from the corners into a V */
+.box.open .flap-left{  transform: rotate(-118deg); }
+.box.open .flap-right{ transform: rotate(118deg); }
 
 /* highlight the bin under the cursor while dragging */
 .bin-hover .box-front{
