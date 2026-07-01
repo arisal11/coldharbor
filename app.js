@@ -275,13 +275,13 @@ function moveGhost(event) {
 function binIndexUnder(event) {
     const el = document.elementFromPoint(event.clientX, event.clientY);
     if (!el) return -1;
-    const bin = el.closest('.container > div');
+    const bin = el.closest('.bin');
     if (!bin) return -1;
-    return Array.from(document.querySelectorAll('.container > div')).indexOf(bin);
+    return Array.from(document.querySelectorAll('.bin')).indexOf(bin);
 }
 
 function highlightBin(index) {
-    document.querySelectorAll('.container > div').forEach((bin, i) => {
+    document.querySelectorAll('.bin').forEach((bin, i) => {
         bin.classList.toggle('bin-hover', i === index);
     });
 }
@@ -327,13 +327,13 @@ function dropIntoBin(binIndex) {
         selected.every((el) => temp.includes(el));
 
     if (correct) {
-        const box = document.querySelectorAll('.container > div')[binIndex];
+        const box = document.querySelectorAll('.bin')[binIndex].querySelector('.box');
         animateIntoBox(selected, box);
         fillBin(binIndex);
         setTimeout(() => {
             addNums();
             initNums();
-        }, 400);
+        }, 550);
     } else {
         container.classList.add('reject');
         setTimeout(() => container.classList.remove('reject'), 300);
@@ -345,45 +345,60 @@ function fillBin(index) {
     const gain = 8 + Math.floor(Math.random() * 12); // 8-19% per refine
     binProgress[index] = Math.min(100, binProgress[index] + gain);
 
-    const bar = document.querySelectorAll('.progress-bar')[index];
-    bar.style.width = binProgress[index] + '%';
-    bar.textContent = binProgress[index] + '%';
-    if (binProgress[index] >= 100) bar.classList.add('complete');
+    const bin = document.querySelectorAll('.bin')[index];
+    const fill = bin.querySelector('.fill');
+    const pct = bin.querySelector('.pct');
+    fill.style.width = binProgress[index] + '%';
+    pct.textContent = binProgress[index] + '%';
+    if (binProgress[index] >= 100) {
+        fill.classList.add('complete');
+        bin.querySelector('.box').classList.add('full');
+    }
 }
 
-function animateIntoBox(selectedElements, targetBox) {
-    targetBox.classList.add('open');
+// Open the box's flaps, then fly the selected numbers into the top opening.
+function animateIntoBox(selectedElements, box) {
+    box.classList.add('open');
+
+    const endRect = box.getBoundingClientRect();
+    const targetX = endRect.left + endRect.width / 2;
+    const targetY = endRect.top + 8; // the opening at the top of the box
+
+    let lastDone = 0;
 
     selectedElements.forEach((el, index) => {
-        const clone = el.cloneNode(true);
-        document.body.appendChild(clone);
-
         const startRect = el.getBoundingClientRect();
-        const endRect = targetBox.getBoundingClientRect();
+        const clone = el.cloneNode(true);
+        clone.classList.remove('selected', 'revealed');
 
         clone.style.position = 'fixed';
         clone.style.left = `${startRect.left}px`;
         clone.style.top = `${startRect.top}px`;
         clone.style.width = `${startRect.width}px`;
         clone.style.height = `${startRect.height}px`;
-        clone.style.transition = 'all 0.6s ease';
+        clone.style.margin = '0';
+        clone.style.transition = 'left 0.55s cubic-bezier(0.5,0,0.75,1), top 0.55s cubic-bezier(0.5,0,0.75,1), transform 0.55s ease-in, opacity 0.55s ease-in';
         clone.style.zIndex = 1000;
         clone.style.pointerEvents = 'none';
+        clone.style.animation = 'none';
+        document.body.appendChild(clone);
 
-        requestAnimationFrame(() => {
-            clone.style.left = `${endRect.left + endRect.width / 2}px`;
-            clone.style.top = `${endRect.top + endRect.height / 2}px`;
-            clone.style.opacity = 0;
-            clone.style.transform = 'scale(0.4)';
-        });
-
+        // stagger the tiles so they stream into the box one after another
+        const delay = index * 70;
         setTimeout(() => {
-            clone.remove();
-            if (index === selectedElements.length - 1) {
-                targetBox.classList.remove('open');
-            }
-        }, 600);
+            clone.style.left = `${targetX}px`;
+            clone.style.top = `${targetY}px`;
+            clone.style.transform = 'scale(0.15)';
+            clone.style.opacity = '0';
+        }, delay + 20);
+
+        const done = delay + 620;
+        lastDone = Math.max(lastDone, done);
+        setTimeout(() => clone.remove(), done);
     });
+
+    // close the flaps shortly after the last tile drops in
+    setTimeout(() => box.classList.remove('open'), lastDone + 120);
 }
 
 // ---------- start ----------

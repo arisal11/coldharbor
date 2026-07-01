@@ -1,177 +1,126 @@
-/*Variables*/
+/* ===== Cold Harbor — Macrodata Refinement ===== */
 
 :root{
-    --primary-color: #000000;
-    --primary-bg-color: #000000;
-    --text-color: #000000;
-    --div-gradient: linear-gradient(red, #ff000086);
+    --bg: #000000;
+    --line: #ffffff;
+    --line-dim: rgba(255, 255, 255, 0.35);
+    --accent: #2b6cff;      /* progress fill */
+    --complete: #1f7a3d;    /* finished bin */
+    --gold: #d9b641;        /* reveal / temper */
+    --mono: 'SF Mono', ui-monospace, 'Menlo', 'Consolas', monospace;
+    --sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
-/*================================================*/
-/*Reset and General Styles*/
+/* Reset */
 * {
-    margin:0;
+    margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
 body{
-    font-family: helvetica, sans-serif;
+    font-family: var(--sans);
     min-height: 100vh;
     line-height: 1.5;
+    background: var(--bg);
     -webkit-user-select: none;
     -moz-user-select: none;
     user-select: none;
-}
 
-a {
-    text-decoration: none;
-}
-
-ul {
-    list-style-type: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 6rem 1fr 8.5rem;
+    grid-template-areas:
+        "header"
+        "main"
+        "footer";
 }
 
 header, footer{
-    background-color: var(--primary-color);
-    color: white;
-}
-/*================================================*/
-/*Utility Classes*/
-.font-sm {
-    font-size: 0.8rem;
+    background-color: var(--bg);
+    color: var(--line);
 }
 
-.right-indent{
-    padding-left: 1em;
-}
-
-.center-text {
-    text-align: center;
-}
-/*================================================*/
-/*Overall layouts*/
-
+/* ---------------- Header ---------------- */
 header{
     grid-area: header;
-    position: top;
-    top: 0;
-}
-
-main{
-    border-top: 10px double white;
-    border-bottom: 10px double white;
-    background-color: var(--primary-bg-color);
-    grid-area: main;
-    color: white;
-}
-
-footer{
-    grid-area:footer;
-    position: bottom;
-    bottom: 0;
-}
-
-body{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 6rem 1fr 6rem;
-    grid-template-areas: "header header header"
-                        "main main main"
-                        "footer footer footer"
-    ;
-}
-
-/**********************************************/
-/*Header Style*/
-
-header{
     display: flex;
-    justify-content: center;
     justify-content: space-between;
     align-items: center;
+    padding: 0 1.6rem;
+    border-bottom: 1px solid var(--line-dim);
 }
 
-img{
-    width: 100px;
-    height: 80px;
-    background: transparent;
+.brand h1{
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    text-indent: 0.42em; /* balance the tracking */
 }
 
-/***********************************************/
-/*Footer Styles*/
-
-footer{
-    display: flex;
-    flex-direction: column;
-    justify-content: space-evenly;
-}
-
-.container > *, .container2 > *{
-    border: 2px solid white;
-    width: 130px;
-    text-align: center;
+.brand .tagline{
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--line-dim);
+    margin-top: 2px;
 }
 
 #temperLabel{
-    color: gold;
-    font-family: monospace;
-    letter-spacing: 2px;
-    font-size: 1.1rem;
+    color: var(--gold);
+    font-family: var(--mono);
+    letter-spacing: 3px;
+    font-size: 1rem;
+    text-shadow: 0 0 10px rgba(217, 182, 65, 0.5);
 }
 
 #logo{
+    width: 92px;
+    height: 74px;
+    background: transparent;
     cursor: pointer;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
+    transition: transform 0.2s ease;
 }
+#logo:hover{ transform: scale(1.05); }
 
-footer .container{
-    display: flex;
-    justify-content: center;
-    justify-content: space-evenly;
-    align-items: center;
-}
-
-footer .container2{
-    display: flex;
-    justify-content: center;
-    justify-content: space-evenly;
-    align-items: center;
-}
-
-.progress {
-    background-color: rgb(0, 0, 0);
-    transition: box-shadow 0.2s ease;
-}
-
-.container > .bin-hover {
-    box-shadow: 0 0 0 2px white, 0 0 12px rgba(255, 255, 255, 0.5);
-}
-
-.progress-bar{
-    width: 0%;
-    height: fit-content;
-    background-color: blue;
-    text-align: center;
-    line-height: normal;
-    font-size: small;
-    color: white;
-    transition: width 0.4s ease;
-}
-
-.progress-bar.complete{
-    background-color: #1f7a3d;
-}
-/*****************************************/
-/*Main Style*/
-
-main {
+/* ---------------- Main / grid ---------------- */
+main{
+    grid-area: main;
     position: relative;
     padding: 0;
     overflow: hidden;
-    cursor: default;
+    cursor: crosshair;
+    background-color: var(--bg);
+    border-top: 3px double var(--line-dim);
+    border-bottom: 3px double var(--line-dim);
 }
 
-.grid {
+/* CRT scanlines + vignette (purely cosmetic, click-through) */
+main::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.035) 0 1px,
+        transparent 1px 3px
+    );
+    z-index: 400;
+}
+main::before{
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    box-shadow: inset 0 0 140px 24px rgba(0, 0, 0, 0.85);
+    z-index: 401;
+}
+
+.grid{
     position: absolute;
     top: 0;
     left: 0;
@@ -180,65 +129,215 @@ main {
     will-change: transform;
 }
 
-.number {
+.number{
     display: flex;
     justify-content: center;
     align-items: center;
-    color: white;
-    font-size: 20px;
-    transition: font-size 0.3s ease;
+    color: var(--line);
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    transition: font-size 0.3s ease, color 0.2s ease, text-shadow 0.2s ease;
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.25);
     -webkit-user-select: none;
     user-select: none;
     animation: idle-float 4s ease-in-out infinite alternate;
 }
 
-.number.revealed {
-    outline: 2px solid gold;
+.number:hover{
+    color: #fff;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+}
+
+.number.revealed{
+    outline: 1px solid var(--gold);
     outline-offset: -2px;
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(217, 182, 65, 0.8);
 }
 
-/* while a number is actively reacting (shake/sway) we pause the idle float
-   so the JS transform isn't overridden by the animation */
-.number.reacting {
-    animation: none;
-}
+/* pause the idle float while a tile is actively reacting */
+.number.reacting{ animation: none; }
 
-@keyframes idle-float {
+@keyframes idle-float{
     from { transform: translateY(-1.5px); }
     to   { transform: translateY(1.5px); }
 }
 
+.number.selected{
+    color: #fff;
+    outline: 1px solid var(--line);
+    outline-offset: -2px;
+    background-color: rgba(255, 255, 255, 0.08);
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.9);
+}
+
 .selecting-box{
     position: fixed;
-    border: 2px solid white;
-    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--line);
+    background-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.25) inset;
     pointer-events: none;
     z-index: 500;
 }
 
 .drag-ghost{
     position: fixed;
-    transform: translate(12px, 12px);
-    padding: 4px 8px;
-    border: 2px solid white;
-    background-color: rgba(0, 0, 0, 0.85);
-    color: white;
-    font-size: 14px;
+    transform: translate(14px, 14px);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: var(--line);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 2px;
     white-space: nowrap;
     pointer-events: none;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.3);
     z-index: 1000;
 }
 
-.number.selected{
-    color: white;
-    border: 2px solid white;
-}
-
-main.reject {
+main.reject{
     animation: reject-flash 0.3s ease;
 }
+@keyframes reject-flash{
+    0%, 100% { background-color: var(--bg); }
+    50%      { background-color: #3a0000; }
+}
 
-@keyframes reject-flash {
-    0%, 100% { background-color: var(--primary-bg-color); }
-    50%      { background-color: #5a0000; }
+/* ---------------- Footer / bins ---------------- */
+footer{
+    grid-area: footer;
+    border-top: 1px solid var(--line-dim);
+}
+
+.bins{
+    height: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: flex-end;
+    padding: 12px 1rem 14px;
+    gap: 10px;
+}
+
+.bin{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    transition: filter 0.2s ease;
+}
+
+/* --- the cardboard box --- */
+.box{
+    position: relative;
+    width: 98px;
+    height: 56px;
+    perspective: 600px;
+}
+
+.box-front{
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid var(--line);
+    background: linear-gradient(180deg, #0e0e0e 0%, #000 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    z-index: 1;
+}
+
+.box-num{
+    font-family: var(--mono);
+    font-size: 1rem;
+    letter-spacing: 2px;
+    color: var(--line);
+}
+
+/* dark slot revealed when the flaps open */
+.box-opening{
+    position: absolute;
+    top: 0;
+    left: 4px;
+    right: 4px;
+    height: 16px;
+    background: #000;
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.9);
+    z-index: 2;
+}
+
+/* two top flaps that open outward like a cardboard box */
+.flap{
+    position: absolute;
+    top: -1px;
+    height: 15px;
+    width: 50%;
+    background: linear-gradient(180deg, #161616, #050505);
+    border: 1.5px solid var(--line);
+    transition: transform 0.4s cubic-bezier(0.34, 1.3, 0.5, 1);
+    backface-visibility: hidden;
+    z-index: 3;
+}
+.flap-left{
+    left: 0;
+    transform-origin: left center;
+    border-right: none;
+}
+.flap-right{
+    right: 0;
+    transform-origin: right center;
+    border-left: none;
+}
+.box.open .flap-left{  transform: rotateY(-128deg); }
+.box.open .flap-right{ transform: rotateY(128deg); }
+
+/* highlight the bin under the cursor while dragging */
+.bin-hover .box-front{
+    border-color: #fff;
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.55);
+}
+.bin-hover{ filter: brightness(1.15); }
+
+.box.full .box-front{
+    border-color: var(--complete);
+    box-shadow: 0 0 14px rgba(31, 122, 61, 0.5);
+}
+
+/* --- progress bar under each box --- */
+.bar{
+    position: relative;
+    width: 98px;
+    height: 15px;
+    border: 1px solid var(--line-dim);
+    background: #000;
+    overflow: hidden;
+}
+
+.fill{
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 0%;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(43, 108, 255, 0.65);
+    transition: width 0.5s ease;
+}
+.fill.complete{
+    background: var(--complete);
+    box-shadow: 0 0 10px rgba(31, 122, 61, 0.65);
+}
+
+.pct{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #fff;
+    text-shadow: 0 0 3px #000;
 }
