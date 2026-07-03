@@ -448,15 +448,14 @@ function animateIntoBox(selectedElements, box) {
 }
 
 // ================= multiplayer (shared global goal) =================
-let GOAL = 500000;
+// The five bins ARE the global progress: everyone's refinements land in the
+// same Postgres-backed bins, updated live over WebSocket.
 let BIN_TARGET = 100000;
-let myHandle = null;
 let ws = null;
 let wsReady = false;
 
 const binPct = [0, 0, 0, 0, 0];         // current bin fill %, authoritative from server
 const localRefined = [0, 0, 0, 0, 0];   // offline fallback counts
-const BIN_LABELS = ['01', '02', '03', '04', '05'];
 
 function connect() {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -467,30 +466,14 @@ function connect() {
     ws.addEventListener('message', (ev) => {
         let msg;
         try { msg = JSON.parse(ev.data); } catch { return; }
-
-        if (msg.type === 'state') {
-            GOAL = msg.goal;
+        if (msg.type === 'state' || msg.type === 'refined') {
             BIN_TARGET = msg.binTarget;
-            myHandle = msg.you;
             renderBins(msg.bins);
-            renderGlobal(msg.total);
-            setOnline(msg.online);
-            if (Array.isArray(msg.feed)) msg.feed.forEach((e) => addFeed(e, false));
-        } else if (msg.type === 'refined') {
-            renderBins(msg.bins);
-            renderGlobal(msg.total);
-            setOnline(msg.online);
-            const mine = msg.by === myHandle;
-            addFeed(msg, mine);
-            if (!mine) remoteRefine(msg.bin, msg.count); // watch others help in real time
-        } else if (msg.type === 'online') {
-            setOnline(msg.online);
         }
     });
 
     ws.addEventListener('close', () => {
         wsReady = false;
-        setOnline(null);
         setTimeout(connect, 2000); // auto-reconnect
     });
     ws.addEventListener('error', () => { try { ws.close(); } catch (e) {} });
@@ -503,12 +486,9 @@ function sendRefine(bin, count) {
 // offline single-player fallback
 function applyLocalRefine(bin, count) {
     localRefined[bin] = Math.min(BIN_TARGET, localRefined[bin] + count);
-    const bins = localRefined.map((r, idx) => ({
+    renderBins(localRefined.map((r, idx) => ({
         idx, refined: r, pct: Math.min(100, (r / BIN_TARGET) * 100),
-    }));
-    renderBins(bins);
-    renderGlobal(localRefined.reduce((s, x) => s + x, 0));
-    addFeed({ bin, count }, true);
+    })));
 }
 
 function renderBins(bins) {
@@ -528,66 +508,11 @@ function renderBins(bins) {
     });
 }
 
-function renderGlobal(total) {
-    const pct = (total / GOAL) * 100;
-    const fill = document.getElementById('globalFill');
-    const text = document.getElementById('globalText');
-    const pctEl = document.getElementById('globalPct');
-    if (fill) fill.style.width = Math.min(100, pct) + '%';
-    if (text) text.textContent = `${total.toLocaleString()} / ${GOAL.toLocaleString()}`;
-    if (pctEl) pctEl.textContent = pct.toFixed(3) + '%';
-}
-
-function setOnline(n) {
-    const el = document.getElementById('online');
-    if (!el) return;
-    if (n == null) {
-        el.innerHTML = '<span class="dot off"></span>offline';
-    } else {
-        el.innerHTML = `<span class="dot"></span>${n} refiner${n === 1 ? '' : 's'} online`;
-    }
-}
-
 function formatPct(p) {
     if (p >= 100) return '100%';
     if (p >= 10) return p.toFixed(0) + '%';
     if (p >= 1) return p.toFixed(1) + '%';
     return p.toFixed(2) + '%';
-}
-
-function addFeed(e, mine) {
-    const feed = document.getElementById('feed');
-    if (!feed) return;
-    const row = document.createElement('div');
-    row.className = 'feed-item' + (mine ? ' mine' : '');
-    const who = mine ? 'You' : e.by;
-    row.textContent = `${who}  →  bin ${BIN_LABELS[e.bin]}  +${e.count}`;
-    feed.prepend(row);
-    while (feed.children.length > 7) feed.lastChild.remove();
-    setTimeout(() => row.classList.add('out'), 6000);
-    setTimeout(() => row.remove(), 6800);
-}
-
-// show another player's contribution landing in the shared box
-function remoteRefine(bin, count) {
-    const binEl = document.querySelectorAll('.bin')[bin];
-    if (!binEl) return;
-    const box = binEl.querySelector('.box');
-    box.classList.add('open');
-    setTimeout(() => box.classList.remove('open'), 700);
-
-    const rect = box.getBoundingClientRect();
-    const tag = document.createElement('div');
-    tag.className = 'plus-tag';
-    tag.textContent = '+' + count;
-    tag.style.left = (rect.left + rect.width / 2) + 'px';
-    tag.style.top = (rect.top - 6) + 'px';
-    document.body.appendChild(tag);
-    requestAnimationFrame(() => {
-        tag.style.top = (rect.top - 36) + 'px';
-        tag.style.opacity = '0';
-    });
-    setTimeout(() => tag.remove(), 900);
 }
 
 // ---------- start ----------
