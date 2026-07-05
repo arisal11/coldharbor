@@ -29,8 +29,23 @@ Then open **http://localhost:3000**. Open it in a second tab/browser to see the
 live multiplayer sync — refine in one and watch the other update.
 
 By default the server connects to the local `coldharbor` database; in
-production set `DATABASE_URL` (e.g. an AWS RDS connection string). To reset the
-global goal: `psql -d coldharbor -c "UPDATE bins SET refined = 0;"`
+production set `DATABASE_URL` (e.g. a Neon or AWS RDS connection string). To
+reset the global goal: `psql -d coldharbor -c "UPDATE bins SET refined = 0;"`
+
+## Deploy (Render + Neon, free)
+
+1. **Database** — create a free Postgres at [neon.tech](https://neon.tech) and copy
+   its connection string.
+2. **Render** — at [dashboard.render.com](https://dashboard.render.com) choose
+   **New → Blueprint**, pick this GitHub repo (it reads `render.yaml`), and when
+   prompted paste the Neon string as `DATABASE_URL`.
+3. Done — the site is live at `https://<name>.onrender.com`, and every push to
+   `main` auto-deploys. Add a custom domain later under **Settings → Custom
+   Domains** (free SSL included).
+
+The free instance sleeps after ~15 min idle (first visit then takes ~30–60s);
+a free [UptimeRobot](https://uptimerobot.com) monitor pinging the URL keeps it
+awake.
 
 ## Play
 

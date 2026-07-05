@@ -15,11 +15,18 @@ const BIN_TARGET = GOAL / BIN_COUNT; // 100,000 per bin
 const MAX_REFINE = 64;               // per-event sanity clamp
 
 // ---------- database ----------
-// Locally this uses your default Postgres (createdb coldharbor); on AWS point
-// DATABASE_URL at RDS, e.g. postgres://user:pass@host:5432/coldharbor
+// Locally this uses your default Postgres (createdb coldharbor); in production
+// set DATABASE_URL to a hosted Postgres (Neon, RDS, ...). Hosted providers
+// require TLS, which local Postgres doesn't use, so enable ssl only for URLs
+// (with an sslmode=disable escape hatch).
 const pool = new Pool(
     process.env.DATABASE_URL
-        ? { connectionString: process.env.DATABASE_URL }
+        ? {
+              connectionString: process.env.DATABASE_URL,
+              ssl: process.env.DATABASE_URL.includes('sslmode=disable')
+                  ? false
+                  : { rejectUnauthorized: false },
+          }
         : { database: 'coldharbor' }
 );
 

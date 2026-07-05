@@ -1,0 +1,12 @@
+# Render blueprint — deploy via https://dashboard.render.com > New > Blueprint
+services:
+  - type: web
+    name: coldharbor
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        sync: false # paste your Neon connection string in the Render dashboard
